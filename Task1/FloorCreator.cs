@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Task1
 {
-    public class Class1
+    internal class FloorCreator
     {
     }
 }

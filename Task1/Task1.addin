@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<RevitAddIns>
+	<AddIn Type="Application">
+		<Name>Floor Creator</Name>
+		<Assembly>Task1.dll</Assembly>
+		<AddInId>
+			6CC7644D-69E7-48F8-8EA7-830437BB507B
+		</AddInId>
+		<FullClassName>Task1.RevitApp</FullClassName>
+		<Description>Floor Creator</Description>
+		<VendorId>AXE</VendorId>
+		<VendorDescription>@AXE</VendorDescription>
+		<VisibilityMode>NotVisibleWhenNoActiveDocument</VisibilityMode>
+	</AddIn>
+</RevitAddIns>
