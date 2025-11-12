@@ -36,7 +36,18 @@ namespace Task1
                     Line.CreateBound(new XYZ(13, 25, 0), new XYZ(13, 40, 0))
                 };
 
-                
+                //check if lines can make a curve loop
+                CurveLoop curveLoop = CanConstructCurveLoop(lines);
+               
+                if (curveLoop == null)
+                {
+                    curveLoop = ArrangeLinesToCurveLoop(lines);
+
+                    if (curveLoop == null)
+                    {
+                        return Result.Failed;
+                    }
+                }
 
                 return Result.Succeeded;
             }
@@ -79,6 +90,55 @@ namespace Task1
             }
         }
 
+
+        private CurveLoop ArrangeLinesToCurveLoop(List<Line> lines)
+        {
+            if (lines == null || lines.Count < 3)
+                return null;
+
+            CurveLoop curveLoop = new CurveLoop();
+
+            List<Line> remaining = new List<Line>(lines);
+            Line firstLine = remaining[0];
+            curveLoop.Append(firstLine);
+
+            remaining.RemoveAt(0);
+            XYZ currentPoint = firstLine.GetEndPoint(1);
+
+            while (remaining.Count > 0)
+            {
+                bool found = false;
+                for (int i = 0; i < remaining.Count; i++)
+                {
+                    Line l = remaining[i];
+                    XYZ start = l.GetEndPoint(0);
+                    XYZ end = l.GetEndPoint(1);
+                    if (currentPoint.IsAlmostEqualTo(start))
+                    {
+                        curveLoop.Append(l);
+                        currentPoint = end;
+                        remaining.RemoveAt(i);
+                        found = true;
+                        break;
+                    }
+                    else if (currentPoint.IsAlmostEqualTo(end))
+                    {
+                        Line reversed = Line.CreateBound(end, start);
+                        curveLoop.Append(reversed);
+                        currentPoint = start;
+                        remaining.RemoveAt(i);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) return null;
+            }
+
+            if (!firstLine.GetEndPoint(0).IsAlmostEqualTo(currentPoint))
+                return null;
+
+            return curveLoop;
+        }
         #endregion
 
 
