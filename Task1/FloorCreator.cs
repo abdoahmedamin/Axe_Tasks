@@ -47,7 +47,39 @@ namespace Task1
                 return Result.Failed;
             }
         }
+        #region Methods
 
+        private CurveLoop CanConstructCurveLoop(List<Line> lines)
+        {
+            CurveLoop curveLoop = new CurveLoop();
+            try
+            {
+                foreach (Line line in lines)
+                {
+                    curveLoop.Append(line);
+                }
+
+                if (!curveLoop.IsOpen() && curveLoop.IsCounterclockwise(new XYZ(0, 0, 1)))
+                    return curveLoop;
+
+                lines.Reverse();
+                CurveLoop reversedLoop = new CurveLoop();
+                foreach (Line line in lines)
+                {
+                    reversedLoop.Append(Line.CreateBound(line.GetEndPoint(1), line.GetEndPoint(0)));
+                }
+                if (!reversedLoop.IsOpen() && reversedLoop.IsCounterclockwise(new XYZ(0, 0, 1)))
+                    return reversedLoop;
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        #endregion
 
 
 
