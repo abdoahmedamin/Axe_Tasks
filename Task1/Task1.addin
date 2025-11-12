@@ -4,7 +4,7 @@
 		<Name>Floor Creator</Name>
 		<Assembly>Task1.dll</Assembly>
 		<AddInId>
-			6CC7644D-69E7-48F8-8EA7-830437BB507B
+			7F9B65C6-6EEA-4ED6-AA91-3A390CCF85AF
 		</AddInId>
 		<FullClassName>Task1.RevitApp</FullClassName>
 		<Description>Floor Creator</Description>
