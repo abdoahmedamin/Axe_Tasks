@@ -13,6 +13,8 @@ namespace Task1
     [Transaction(TransactionMode.Manual)]
     public class FloorCreator : IExternalCommand
     {
+        string typeName = "Generic 300mm";
+        string levelName = "Level 1";
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             UIDocument uIDocument = commandData.Application.ActiveUIDocument;
@@ -49,12 +51,27 @@ namespace Task1
                     }
                 }
 
+                using (Transaction tr = new Transaction(document))
+                {
+                    tr.Start("Create Floor");
+
+                    var floor = CreateFloor(document, curveLoop, levelName, typeName);
+                    if (floor == null)
+                    {
+                        return Result.Failed;
+                    }
+
+                    tr.Commit();
+
+                    TaskDialog.Show("Success", "Floor Created Successfully!");
+                }
+
                 return Result.Succeeded;
             }
             catch (Exception ex)
             {
                 message = ex.Message;
-                TaskDialog.Show("Error", "OOPS ! error occurred: " + ex.Message);
+                TaskDialog.Show("Error", "OOPS ! Error Occurred: " + ex.Message);
                 return Result.Failed;
             }
         }
@@ -138,6 +155,27 @@ namespace Task1
                 return null;
 
             return curveLoop;
+        }
+
+        private Floor CreateFloor(Document doc, CurveLoop curveLoop, string levelName, string typeName)
+        {
+            FloorType floorType = new FilteredElementCollector(doc)
+                .OfClass(typeof(FloorType))
+                .Cast<FloorType>()
+                .Where(f => f.Name == typeName).FirstOrDefault();
+
+            Level level = new FilteredElementCollector(doc)
+                                .OfClass(typeof(Level))
+                                .Cast<Level>()
+                                .Where(l => l.Name == levelName).FirstOrDefault();
+
+            if (floorType == null || level == null)
+            {
+                TaskDialog.Show("Error", "Could not find floor type or level.");
+                return null;
+            }
+
+            return Floor.Create(doc, new List<CurveLoop> { curveLoop }, floorType.Id, level.Id);
         }
         #endregion
 
