@@ -228,6 +228,18 @@ namespace Task4
                 }).ToList();
         }
 
+        private Solid GetWallSolid(Wall wall)
+        {
+            Options options = new Options();
+            options.ComputeReferences = true;
+            GeometryElement wallGeometry = wall.get_Geometry(options);
+
+            return wallGeometry
+                .Cast<GeometryObject>()
+                .OfType<Solid>()
+                .FirstOrDefault(solid => solid.Volume > 0);
+        }
+
         #endregion
 
 
