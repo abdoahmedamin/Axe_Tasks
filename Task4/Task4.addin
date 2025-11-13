@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<RevitAddIns>
+	<AddIn Type="Application">
+		<Name>Framing Wall</Name>
+		<Assembly>Task4.dll</Assembly>
+		<AddInId>
+			4B8DC84D-195A-4527-BAFE-77B10E51C33E
+		</AddInId>
+		<FullClassName>Task4.RevitApp</FullClassName>
+		<Description>Framing Wall</Description>
+		<VendorId>AXE</VendorId>
+		<VendorDescription>@AXE</VendorDescription>
+		<VisibilityMode>NotVisibleWhenNoActiveDocument</VisibilityMode>
+	</AddIn>
+</RevitAddIns>

@@ -111,11 +111,11 @@ namespace Task3
                         { }
                     }
                 }
-            }    
+            }
             catch (Exception ex)
             {
                 message = ex.Message;
-                TaskDialog.Show("Error", "An error occurred: " + ex.Message);
+                TaskDialog.Show("Error", "OOPS! Error Occurred: " + ex.Message);
                 return Result.Failed;
             }
 
