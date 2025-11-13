@@ -11,6 +11,8 @@ namespace Task4
 {
     public class FramingWallCommand : IExternalCommand
     {
+        double studTickness = 0.15;
+        double studSpacing = 2.0;
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             UIDocument uiDocument = commandData.Application.ActiveUIDocument;
@@ -69,8 +71,54 @@ namespace Task4
             XYZ wallDir = (wallCurve.GetEndPoint(1) - wallCurve.GetEndPoint(0)).Normalize();
             double wallWidth = wall.Width;
 
+            // vertical studs
+            double spacing = UnitUtils.ConvertToInternalUnits(studSpacing, UnitTypeId.Feet);
+            int pointCount = (int)(wallCurve.Length / spacing);
 
+            for (int i = 1; i <= pointCount; i++)
+            {
+                double dist = i * spacing;
+                if (Math.Abs(dist - wallCurve.Length) < 0.01) continue; // skip last point
+
+                XYZ pointOnWall = wallCurve.Evaluate(dist / wallCurve.Length, true);
+                CreateVerticalStudAtPoint(doc, pointOnWall, wallSolid, wallNormal, wallDir, wallWidth);
+            }
+
+            // bottom stud
+            Transform moveTransform = Transform.CreateTranslation(wallNormal * wallWidth * 0.5);
+            Curve movedCurve = wallCurve.CreateTransformed(moveTransform);
+
+            Transform heightTransform = Transform.CreateTranslation(XYZ.BasisZ * studTickness);
+            Curve offsetCurve = movedCurve.CreateTransformed(heightTransform);
+
+            CreateModelCurve(doc, movedCurve, wallNormal, movedCurve.GetEndPoint(0));
+            CreateModelCurve(doc, offsetCurve, wallNormal, offsetCurve.GetEndPoint(0));
+
+            // uter studs
+            CurveLoop outerLoop = curveLoops[0];
+            foreach (Curve curve in outerLoop)
+            {
+                if (IsBottomEdge(curve)) continue; // skip bottom edge
+
+                CreateStudPair(doc, curve, wallNormal);
+            }
+
+            // openings
+            if (curveLoops.Count > 1)
+            {
+                IEnumerable<FamilyInstance> openings = GetWallOpenings(doc, wall);
+
+                for (int i = 1; i < curveLoops.Count; ++i)
+                {
+                    CurveLoop openingLoop = curveLoops[i];
+                    CreateOpeningFraming(doc, openingLoop, wallNormal,
+                        openings.Any(o => o.Category.Id.IntegerValue == (int)BuiltInCategory.OST_Doors));
+                }
+            }
         }
+
+        
+
         #endregion
     }
 }
