@@ -98,8 +98,12 @@ namespace Task3
                                 heightParameter.Set(offset);
                             }
 
-                            
-
+                            // parameters
+                            if (outfloor != null)
+                            {
+                                CopyFloorParameters(outfloor, newFloor);
+                                document.Delete(outfloor.Id);
+                            }
 
                         }
 
