@@ -61,6 +61,8 @@ namespace Task2
                 SpatialElementBoundaryOptions options = new SpatialElementBoundaryOptions();
                 options.SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.CoreBoundary;
 
+                List<BathRoom> bathRooms = GetBathroomsData(document, wall, rooms, document.ActiveView, options);
+
 
                 return Result.Succeeded;
             }
