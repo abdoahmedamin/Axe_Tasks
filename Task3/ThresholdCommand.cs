@@ -74,7 +74,16 @@ namespace Task3
 
                             List<Doorthreshold> roomThresholds = GetRoomAllThresholds(document, room);
 
-                            
+                            Solid lastSolid = roomFloorSolid;
+                            foreach (Doorthreshold doorthreshold in roomThresholds)
+                            {
+                                Solid ThresholdSolid = GetThresholdSolid(doorthreshold, floorThickness, offset);
+
+                                Solid solid = BooleanOperationsUtils.ExecuteBooleanOperation(lastSolid, ThresholdSolid,
+                                    BooleanOperationsType.Union);
+
+                                lastSolid = solid;
+                            }
 
 
                         }
@@ -226,6 +235,57 @@ namespace Task3
             }
 
             return thresholds;
+        }
+
+        private Solid GetThresholdSolid(Doorthreshold doorthreshold, double floorThickness, double zOffset)
+        {
+            XYZ location = doorthreshold.Locatin;
+            Wall wall = doorthreshold.HostWall;
+            Curve curve = (wall.Location as LocationCurve).Curve;
+
+            XYZ WallDirection = (curve.GetEndPoint(1) - curve.GetEndPoint(0)).Normalize();
+
+            XYZ p1 = location + WallDirection * doorthreshold.Width / 2.0;
+            XYZ p2 = location + WallDirection.Negate() * doorthreshold.Width / 2.0;
+
+            XYZ FaceDirection = doorthreshold.Door.FacingOrientation;
+            XYZ roomLocation = (doorthreshold.Room.Location as LocationPoint).Point;
+            XYZ fromDoorToRoomCenter = (roomLocation - doorthreshold.Locatin).Normalize();
+
+            XYZ p3;
+            XYZ p4;
+            if (FaceDirection.DotProduct(fromDoorToRoomCenter) > 0)
+            {
+                p3 = p2 + FaceDirection * doorthreshold.Depth;
+                p4 = p1 + FaceDirection * doorthreshold.Depth;
+            }
+            else
+            {
+                p3 = p2 - FaceDirection * doorthreshold.Depth;
+                p4 = p1 - FaceDirection * doorthreshold.Depth;
+            }
+
+            Line line1 = Line.CreateBound(p1, p2);
+            Line line2 = Line.CreateBound(p2, p3);
+            Line line3 = Line.CreateBound(p3, p4);
+            Line line4 = Line.CreateBound(p4, p1);
+
+            CurveLoop curves = new CurveLoop();
+            curves.Append(line1);
+            curves.Append(line2);
+            curves.Append(line3);
+            curves.Append(line4);
+
+            // move by zOffset
+            XYZ translation = new XYZ(0, 0, zOffset);
+            Transform offsetTransform = Transform.CreateTranslation(translation);
+            CurveLoop offsetCurveLoop = CurveLoop.CreateViaTransform(curves, offsetTransform);
+
+            // extrude -z
+            return GeometryCreationUtilities.CreateExtrusionGeometry(
+                new List<CurveLoop> { offsetCurveLoop },
+                XYZ.BasisZ.Negate(),
+                floorThickness);
         }
         #endregion
     }
