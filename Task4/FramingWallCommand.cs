@@ -196,6 +196,20 @@ namespace Task4
             SketchPlane sketchPlane = SketchPlane.Create(doc, plane);
             doc.Create.NewModelCurve(curve, sketchPlane);
         }
+
+        private bool IsBottomEdge(Curve curve)
+        {
+            XYZ p1 = curve.GetEndPoint(0);
+            XYZ p2 = curve.GetEndPoint(1);
+
+            if (Math.Abs(p1.Z - p2.Z) < 0.01)
+            {
+                double avgZ = (p1.Z + p2.Z) / 2.0;
+                return avgZ < 1;
+            }
+            return false;
+        }
+
         #endregion
 
 
