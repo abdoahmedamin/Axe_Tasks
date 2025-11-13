@@ -43,7 +43,23 @@ namespace Task3
                     return Result.Failed;
                 }
 
-            }
+                using (Transaction tr = new Transaction(document))
+                {
+                    tr.Start("Rooms Thresholds");
+
+                    foreach (Room room in rooms)
+                    {
+                       
+                            Level level = room.Level;
+
+                            
+
+
+                        
+                    }
+
+                }   
+            }   
             catch (Exception ex)
             {
                 message = ex.Message;
@@ -54,5 +70,22 @@ namespace Task3
             return Result.Succeeded;
 
         }
+        #region Methods
+
+        private Solid GetOrCreateRoomFloor(Document doc, Room room, Level level, out Floor outFloor, out double offset)
+        {
+            SpatialElementBoundaryOptions options = new SpatialElementBoundaryOptions();
+            IList<IList<BoundarySegment>> boundaries = room.GetBoundarySegments(options);
+            if (boundaries == null || boundaries.Count == 0)
+            {
+                outFloor = null;
+                offset = 0;
+                return null;
+            }
+
+            
+        }
+
+        #endregion
     }
 }
