@@ -18,6 +18,7 @@ namespace Task2
     {
         string familyTypeName = "ADA";
         string roomName = "Bathroom";
+        double offsetFromWall = 1.5;
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -87,7 +88,13 @@ namespace Task2
                             familySymbol.Activate();
                         }
 
-                        
+                        XYZ vector = (d1 > d2 ? (endPoint - placementPoint) : (startPoint - placementPoint)).Normalize();
+
+                        placementPoint = placementPoint + vector * offsetFromWall;
+
+                        FamilyInstance familyInstance = document.Create.NewFamilyInstance(placementPoint, familySymbol, wall, StructuralType.NonStructural);
+
+
                     }
 
                     tr.Commit();
@@ -148,6 +155,22 @@ namespace Task2
                 bathRooms.Add(bathRoom);
             }
             return bathRooms;
+        }
+
+        private bool IsFamilyFacingInSideRoom(FamilyInstance familyInstance, XYZ location, BathRoom room)
+        {
+            XYZ FamilyFacingDirection = familyInstance.FacingOrientation;
+            XYZ familyToRoom = room.Center - location;
+
+            if (familyToRoom.DotProduct(FamilyFacingDirection) > 0)
+                return true;
+
+            return false;
+        }
+
+        private bool IsParallel(XYZ vector1, XYZ vector2)
+        {
+            return vector1.DotProduct(vector2) == 1 || vector1.DotProduct(vector2) == -1;
         }
         #endregion
 
