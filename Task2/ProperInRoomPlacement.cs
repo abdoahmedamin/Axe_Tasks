@@ -94,12 +94,21 @@ namespace Task2
 
                         FamilyInstance familyInstance = document.Create.NewFamilyInstance(placementPoint, familySymbol, wall, StructuralType.NonStructural);
 
+                        if (!IsFamilyFacingInSideRoom(familyInstance, placementPoint, room))
+                            familyInstance.flipFacing();
+
+                        if ((placementPoint.X > room.DoorLocation.X && IsParallel(familyInstance.FacingOrientation, XYZ.BasisY)
+                            || (placementPoint.Y < room.DoorLocation.Y && IsParallel(familyInstance.FacingOrientation, XYZ.BasisX))))
+                        {
+                            familyInstance.flipHand();
+                        }
 
                     }
 
                     tr.Commit();
-
-                    return Result.Succeeded;
+                    TaskDialog.Show("Success", "Family Placement Done!");
+                }
+                 return Result.Succeeded;
             }
             catch (Exception ex)
             {

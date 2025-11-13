@@ -63,6 +63,12 @@
     <Content Include="resources\icon1.ico" />
     <Content Include="resources\icon1.png" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Task2\Task2.csproj">
+      <Project>{90FA0AF7-A471-4481-987E-634221A4FE31}</Project>
+      <Name>Task2</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "$(TargetPath)" "%25AppData%25\Autodesk\Revit\Addins\2024\"

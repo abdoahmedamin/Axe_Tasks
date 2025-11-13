@@ -1,13 +1,15 @@
-﻿using System;
+﻿using Autodesk.Revit.UI;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
-using Autodesk.Revit.DB;
-using Autodesk.Revit.UI;
 
 namespace Task2
 {
-    public class RevitApp : IExternalApplication
+    public class RevitApp2 : IExternalApplication
     {
         public Result OnShutdown(UIControlledApplication application)
         {
@@ -18,26 +20,26 @@ namespace Task2
         {
             try
             {
-                application.CreateRibbonTab("AXE_Revit_PLugins");
+                application.CreateRibbonTab("AXE_Revit_PLugins_Task2");
             }
             catch (Exception) { }
 
             RibbonPanel panel = null;
             try
             {
-                panel = application.GetRibbonPanels("AXE_Revit_PLugins").FirstOrDefault(p => p.Name == "Tools");
+                panel = application.GetRibbonPanels("AXE_Revit_PLugins_Task2").FirstOrDefault(p => p.Name == "Tools");
             }
             catch (Exception) { }
 
             if (panel == null)
             {
-                panel = application.CreateRibbonPanel("AXE_Revit_PLugins", "Tools");
+                panel = application.CreateRibbonPanel("AXE_Revit_PLugins_Task2", "Tools");
             }
 
             string assemblyPath = Assembly.GetExecutingAssembly().Location;
             var buttonData = new PushButtonData(
                 "Task2",
-                "Task2\nProper InRoom Placement",
+                "Task2\nProperInRoomPlacement",
                 assemblyPath,
                 typeof(ProperInRoomPlacement).FullName);
 
@@ -46,11 +48,9 @@ namespace Task2
             var buttonImage = new BitmapImage(iconUri);
             buttonData.LargeImage = buttonImage;
 
-
             var button = panel.AddItem(buttonData) as PushButton;
-            button.ToolTip = "Proper InRoom Placement";
+            button.ToolTip = "ProperInRoomPlacement";
 
             return Result.Succeeded;
         }
-    }
-}
+    }}
