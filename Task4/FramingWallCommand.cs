@@ -151,7 +151,22 @@ namespace Task4
             }
         }
 
-        
+        private void CreateStudPair(Document doc, Curve curve, XYZ wallNormal)
+        {
+            XYZ p1 = curve.GetEndPoint(0);
+            XYZ p2 = curve.GetEndPoint(1);
+
+            XYZ lineDir = (p2 - p1).Normalize();
+            XYZ offsetDir = wallNormal.CrossProduct(lineDir).Normalize();
+
+            // main line
+            CreateModelCurve(doc, Line.CreateBound(p1, p2), wallNormal, p1);
+
+            // offset line
+            XYZ p1Offset = p1 + offsetDir * studTickness;
+            XYZ p2Offset = p2 + offsetDir * studTickness;
+            CreateModelCurve(doc, Line.CreateBound(p1Offset, p2Offset), wallNormal, p1Offset);
+        }
 
         #endregion
     }
