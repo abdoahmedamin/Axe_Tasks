@@ -85,7 +85,20 @@ namespace Task3
                                 lastSolid = solid;
                             }
 
-                           
+                            // new floor
+                            Floor newFloor = CreateFloorFromSolid(document, lastSolid, floorTypeName, level);
+
+                            if (newFloor == null)
+                                continue;
+
+                            // offset parameter
+                            Parameter heightParameter = newFloor.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM);
+                            if (heightParameter != null && !heightParameter.IsReadOnly)
+                            {
+                                heightParameter.Set(offset);
+                            }
+
+                            
 
 
                         }
@@ -345,6 +358,18 @@ namespace Task3
             {
                 TaskDialog.Show("error creating floor", ex.Message);
                 return null;
+            }
+        }
+
+
+        private void CopyFloorParameters(Floor source, Floor target)
+        {
+            Parameter sourceParam = source.LookupParameter("Mark");
+            Parameter targetParam = target.LookupParameter("Mark");
+
+            if (sourceParam != null && targetParam != null && !targetParam.IsReadOnly && sourceParam.HasValue)
+            {
+                targetParam.Set(sourceParam.AsString());
             }
         }
         #endregion
