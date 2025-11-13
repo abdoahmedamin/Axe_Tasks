@@ -36,6 +36,42 @@ namespace Task5
             if (viewLevel == null)
                 return;
 
+            foreach (ElementId addedId in e.GetAddedElementIds())
+            {
+                Element addedElement = doc.GetElement(addedId);
+
+                if (addedElement is ViewSection viewSection &&
+                    viewSection.ViewType == ViewType.Section &&
+                    !_processedSections.Contains(addedId))
+                { 
+                    _processedSections.Add(addedId);
+
+                    using (Transaction tx = new Transaction(doc, "Adjust Section Crop Box"))
+                    {
+                        tx.Start();
+
+                        try
+                        {
+
+                        }
+                        catch (Exception ex)
+                        {
+                            tx.RollBack();
+                            TaskDialog.Show("Error", ex.Message);
+                            return;
+                        }
+
+                        tx.Commit();
+                    }
+
+                }
+
+
+
+            }
         }
+
+
+
     }
 }

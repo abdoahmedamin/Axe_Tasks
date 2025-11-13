@@ -56,7 +56,13 @@
     <Compile Include="RevitApp5.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Task5.addin" />
+    <None Include="Task5.addin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy "$(TargetPath)" "%25AppData%25\Autodesk\Revit\Addins\2024\"
+</PostBuildEvent>
+  </PropertyGroup>
 </Project>
