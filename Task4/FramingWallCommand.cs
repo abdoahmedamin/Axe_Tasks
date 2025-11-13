@@ -61,6 +61,16 @@ namespace Task4
                 .OfType<Solid>()
                 .FirstOrDefault(solid => solid.Volume > 0);
         }
+
+        private void CreateFraming(Document doc, Wall wall, Solid wallSolid, Face wallFace, XYZ wallNormal, IList<CurveLoop> curveLoops)
+        {
+            LocationCurve locCurve = wall.Location as LocationCurve;
+            Curve wallCurve = locCurve.Curve;
+            XYZ wallDir = (wallCurve.GetEndPoint(1) - wallCurve.GetEndPoint(0)).Normalize();
+            double wallWidth = wall.Width;
+
+
+        }
         #endregion
     }
 }
