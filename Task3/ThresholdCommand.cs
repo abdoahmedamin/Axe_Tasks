@@ -28,7 +28,21 @@ namespace Task3
                     return Result.Failed;
                 }
 
-                
+                //Get all rooms
+                FilteredElementCollector allrooms = new FilteredElementCollector(document)
+                    .OfCategory(BuiltInCategory.OST_Rooms)
+                    .WhereElementIsNotElementType();
+
+                List<Room> rooms = allrooms.Cast<Room>()
+                    .Where(r => r.Location != null && r.Area > 0)
+                    .ToList();
+
+                if (rooms.Count == 0)
+                {
+                    TaskDialog.Show("Error", "no rooms found in the document.");
+                    return Result.Failed;
+                }
+
             }
             catch (Exception ex)
             {
