@@ -210,6 +210,24 @@ namespace Task4
             return false;
         }
 
+        private List<FamilyInstance> GetWallOpenings(Document doc, Wall wall)
+        {
+            ElementClassFilter filter = new ElementClassFilter(typeof(FamilyInstance));
+            FilteredElementCollector collector = new FilteredElementCollector(doc)
+                .WherePasses(filter);
+
+            BuiltInParameter hostParamId = BuiltInParameter.HOST_ID_PARAM;
+            ElementId wallId = wall.Id;
+
+            return collector
+                .Cast<FamilyInstance>()
+                .Where(instance =>
+                {
+                    Parameter hostParam = instance.get_Parameter(hostParamId);
+                    return hostParam != null && hostParam.AsElementId().Equals(wallId);
+                }).ToList();
+        }
+
         #endregion
 
 
