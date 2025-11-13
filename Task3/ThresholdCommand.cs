@@ -83,7 +83,20 @@ namespace Task3
                 return null;
             }
 
-            
+            List<CurveLoop> loops = new List<CurveLoop>();
+
+            foreach (IList<BoundarySegment> boundaryList in boundaries)
+            {
+                CurveLoop loop = new CurveLoop();
+                foreach (BoundarySegment segment in boundaryList)
+                {
+                    loop.Append(segment.GetCurve());
+                }
+                loops.Add(loop);
+            }
+
+
+
         }
 
         #endregion
