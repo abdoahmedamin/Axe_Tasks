@@ -85,6 +85,8 @@ namespace Task3
                                 lastSolid = solid;
                             }
 
+                           
+
 
                         }
 
@@ -286,6 +288,64 @@ namespace Task3
                 new List<CurveLoop> { offsetCurveLoop },
                 XYZ.BasisZ.Negate(),
                 floorThickness);
+        }
+
+        private Floor CreateFloorFromSolid(Document doc, Solid solid, string floorTypeName, Level level)
+        {
+            FloorType floorType = new FilteredElementCollector(doc)
+                                    .OfClass(typeof(FloorType))
+                                    .Cast<FloorType>()
+                                    .FirstOrDefault(f => f.Name == floorTypeName);
+
+            if (floorType == null)
+            {
+                floorType = new FilteredElementCollector(doc)
+                             .OfClass(typeof(FloorType))
+                             .Cast<FloorType>()
+                             .FirstOrDefault();
+
+                if (floorType == null)
+                {
+                    TaskDialog.Show("Error", "no floor types found in the document.");
+                    return null;
+                }
+            }
+
+            Face topFace = null;
+
+            // top face 
+            foreach (Face face in solid.Faces)
+            {
+                XYZ normal = face.ComputeNormal(new UV(0.5, 0.5));
+                if (normal.IsAlmostEqualTo(XYZ.BasisZ, 0.01))
+                {
+                    topFace = face;
+                    break;
+                }
+            }
+
+            if (topFace == null)
+            {
+                TaskDialog.Show("Error", "top face error.");
+                return null;
+            }
+
+            IList<CurveLoop> loops = topFace.GetEdgesAsCurveLoops();
+            if (loops == null || loops.Count == 0)
+            {
+                TaskDialog.Show("Error", "no curve loops found on top face.");
+                return null;
+            }
+
+            try
+            {
+                return Floor.Create(doc, loops, floorType.Id, level.Id);
+            }
+            catch (Exception ex)
+            {
+                TaskDialog.Show("error creating floor", ex.Message);
+                return null;
+            }
         }
         #endregion
     }
