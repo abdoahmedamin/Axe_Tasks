@@ -117,6 +117,40 @@ namespace Task4
             }
         }
 
+        private void CreateVerticalStudAtPoint(Document doc, XYZ pointOnWall, Solid wallSolid, XYZ wallNormal, XYZ wallDir, double wallWidth)
+        {
+            XYZ bottom = pointOnWall - XYZ.BasisZ * 100;
+            XYZ top = pointOnWall + XYZ.BasisZ * 100;
+            Line verticalLine = Line.CreateBound(bottom, top);
+
+            // intersection with wall
+            SolidCurveIntersection intersection = wallSolid.IntersectWithCurve(verticalLine, new SolidCurveIntersectionOptions());
+
+            if (intersection.SegmentCount > 0)
+            {
+                for (int j = 0; j < intersection.SegmentCount; j++)
+                {
+                    Curve seg = intersection.GetCurveSegment(j);
+                    if (seg == null) continue;
+
+                    // trim and offset curve
+                    Curve trimmedCurve = TrimCurve(seg, studTickness);
+                    Transform moveTransform = Transform.CreateTranslation(wallNormal * wallWidth * 0.5);
+                    Curve movedCurve = trimmedCurve.CreateTransformed(moveTransform);
+
+                    // two sides of the stud
+                    Transform t1 = Transform.CreateTranslation(wallDir * studTickness * 0.5);
+                    Transform t2 = Transform.CreateTranslation(wallDir.Negate() * studTickness * 0.5);
+
+                    Curve curve1 = movedCurve.CreateTransformed(t1);
+                    Curve curve2 = movedCurve.CreateTransformed(t2);
+
+                    CreateModelCurve(doc, curve1, wallNormal, curve1.GetEndPoint(0));
+                    CreateModelCurve(doc, curve2, wallNormal, curve2.GetEndPoint(0));
+                }
+            }
+        }
+
         
 
         #endregion
