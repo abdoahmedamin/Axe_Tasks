@@ -240,6 +240,21 @@ namespace Task4
                 .FirstOrDefault(solid => solid.Volume > 0);
         }
 
+        private Curve TrimCurve(Curve curve, double trimLength)
+        {
+            if (curve.Length < 2 * trimLength)
+                return curve;
+
+            XYZ start = curve.GetEndPoint(0);
+            XYZ end = curve.GetEndPoint(1);
+            XYZ direction = (end - start).Normalize();
+
+            XYZ newStart = start + direction * trimLength;
+            XYZ newEnd = end - direction * trimLength;
+
+            return Line.CreateBound(newStart, newEnd);
+        }
+
         #endregion
 
 
