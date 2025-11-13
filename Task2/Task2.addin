@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<RevitAddIns>
+	<AddIn Type="Application">
+		<Name>Proper InRoom Placement</Name>
+		<Assembly>Task2.dll</Assembly>
+		<AddInId>
+			27DAF255-4B6C-445A-AE78-D7522C3ED088
+		</AddInId>
+		<FullClassName>Task2.RevitApp2</FullClassName>
+		<Description>Proper In-Room Placement</Description>
+		<VendorId>AXE</VendorId>
+		<VendorDescription>@AXE</VendorDescription>
+		<VisibilityMode>NotVisibleWhenNoActiveDocument</VisibilityMode>
+	</AddIn>
+</RevitAddIns>

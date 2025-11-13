@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<RevitAddIns>
+	<AddIn Type="Application">
+		<Name>Section Box Modifier</Name>
+		<Assembly>Task5.dll</Assembly>
+		<AddInId>
+			CABD2613-AE71-4EDA-B373-0185CE4826F0
+		</AddInId>
+		<FullClassName>Task5.RevitApp</FullClassName>
+		<Description>Section Box Modifier</Description>
+		<VendorId>AXE</VendorId>
+		<VendorDescription>@AXE</VendorDescription>
+		<VisibilityMode>NotVisibleWhenNoActiveDocument</VisibilityMode>
+	</AddIn>
+</RevitAddIns>
