@@ -13,8 +13,9 @@ namespace Task1
     [Transaction(TransactionMode.Manual)]
     public class FloorCreator : IExternalCommand
     {
-        string typeName = "Generic 300mm";
-        string levelName = "Level 1";
+        string typeName = "Cores - Mechanical Space";
+        string levelName = "L1";
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             UIDocument uIDocument = commandData.Application.ActiveUIDocument;
@@ -22,48 +23,51 @@ namespace Task1
 
             try
             {
+                // convert to Feet
+                double ToFeet(double meters) => meters * 3.28084;
+
                 List<Line> lines = new List<Line>
                 {
-                    Line.CreateBound(new XYZ(0, 0, 0), new XYZ(79, 0, 0)),
-                    Line.CreateBound(new XYZ(44, 25, 0), new XYZ(13, 25, 0)),
-                    Line.CreateBound(new XYZ(13, 40, 0), new XYZ(-8, 40, 0)),
-                    Line.CreateBound(new XYZ(55, 34, 0), new XYZ(55, 10, 0)),
-                    Line.CreateBound(new XYZ(79, 34, 0), new XYZ(55, 34, 0)),
-                    Line.CreateBound(new XYZ(0, 20, 0), new XYZ(0, 0, 0)),
-                    Line.CreateBound(new XYZ(55, 10, 0), new XYZ(44, 12, 0)),
-                    Line.CreateBound(new XYZ(-8, 40, 0), new XYZ(-8, 20, 0)),
-                    Line.CreateBound(new XYZ(79, 0, 0), new XYZ(79, 34, 0)),
-                    Line.CreateBound(new XYZ(44, 12, 0), new XYZ(44, 25, 0)),
-                    Line.CreateBound(new XYZ(-8, 20, 0), new XYZ(0, 20, 0)),
-                    Line.CreateBound(new XYZ(13, 25, 0), new XYZ(13, 40, 0))
+                    Line.CreateBound(new XYZ(ToFeet(0), ToFeet(0), 0), new XYZ(ToFeet(79), ToFeet(0), 0)),
+                    Line.CreateBound(new XYZ(ToFeet(44), ToFeet(25), 0), new XYZ(ToFeet(13), ToFeet(25), 0)),
+                    Line.CreateBound(new XYZ(ToFeet(13), ToFeet(40), 0), new XYZ(ToFeet(-8), ToFeet(40), 0)),
+                    Line.CreateBound(new XYZ(ToFeet(55), ToFeet(34), 0), new XYZ(ToFeet(55), ToFeet(10), 0)),
+                    Line.CreateBound(new XYZ(ToFeet(79), ToFeet(34), 0), new XYZ(ToFeet(55), ToFeet(34), 0)),
+                    Line.CreateBound(new XYZ(ToFeet(0), ToFeet(20), 0), new XYZ(ToFeet(0), ToFeet(0), 0)),
+                    Line.CreateBound(new XYZ(ToFeet(55), ToFeet(10), 0), new XYZ(ToFeet(44), ToFeet(12), 0)),
+                    Line.CreateBound(new XYZ(ToFeet(-8), ToFeet(40), 0), new XYZ(ToFeet(-8), ToFeet(20), 0)),
+                    Line.CreateBound(new XYZ(ToFeet(79), ToFeet(0), 0), new XYZ(ToFeet(79), ToFeet(34), 0)),
+                    Line.CreateBound(new XYZ(ToFeet(44), ToFeet(12), 0), new XYZ(ToFeet(44), ToFeet(25), 0)),
+                    Line.CreateBound(new XYZ(ToFeet(-8), ToFeet(20), 0), new XYZ(ToFeet(0), ToFeet(20), 0)),
+                    Line.CreateBound(new XYZ(ToFeet(13), ToFeet(25), 0), new XYZ(ToFeet(13), ToFeet(40), 0))
                 };
 
-                //check if lines can make a curve loop
-                CurveLoop curveLoop = CanConstructCurveLoop(lines);
-               
+                CurveLoop curveLoop = CanConstructCurveLoop(lines) ?? ArrangeLinesToCurveLoop(lines);
+
                 if (curveLoop == null)
                 {
-                    curveLoop = ArrangeLinesToCurveLoop(lines);
-
-                    if (curveLoop == null)
-                    {
-                        return Result.Failed;
-                    }
+                    TaskDialog.Show("Error", "❌ Could not form a valid closed loop for the floor boundary.");
+                    return Result.Failed;
                 }
 
-                using (Transaction tr = new Transaction(document))
+                // get the type and level of floor
+                FloorType floorType = GetFloorType(document, typeName);
+                Level level = GetLevel(document, levelName);
+
+                if (floorType == null || level == null)
                 {
-                    tr.Start("Create Floor");
+                    TaskDialog.Show("Error", "❌ Could not find floor type or level in the project.");
+                    ShowAvailableTypesAndLevels(document);
+                    return Result.Failed;
+                }
 
-                    var floor = CreateFloor(document, curveLoop, levelName, typeName);
-                    if (floor == null)
-                    {
-                        return Result.Failed;
-                    }
-
+                using (Transaction tr = new Transaction(document, "Create Floor"))
+                {
+                    tr.Start();
+                    Floor floor = Floor.Create(document, new List<CurveLoop> { curveLoop }, floorType.Id, level.Id);
                     tr.Commit();
 
-                    TaskDialog.Show("Success", "Floor Created Successfully!");
+                    TaskDialog.Show("Success", $"✅ Floor '{floorType.Name}' created on Level '{level.Name}'!");
                 }
 
                 return Result.Succeeded;
@@ -71,54 +75,49 @@ namespace Task1
             catch (Exception ex)
             {
                 message = ex.Message;
-                TaskDialog.Show("Error", "OOPS ! Error Occurred: " + ex.Message);
+                TaskDialog.Show("Error", "OOPS! Error Occurred: " + ex.Message);
                 return Result.Failed;
             }
         }
-        #region Methods
+
+        #region Helper Methods
 
         private CurveLoop CanConstructCurveLoop(List<Line> lines)
         {
-            CurveLoop curveLoop = new CurveLoop();
             try
             {
+                CurveLoop loop = new CurveLoop();
                 foreach (Line line in lines)
-                {
-                    curveLoop.Append(line);
-                }
+                    loop.Append(line);
 
-                if (!curveLoop.IsOpen() && curveLoop.IsCounterclockwise(new XYZ(0, 0, 1)))
-                    return curveLoop;
+                if (!loop.IsOpen() && loop.IsCounterclockwise(new XYZ(0, 0, 1)))
+                    return loop;
 
                 lines.Reverse();
                 CurveLoop reversedLoop = new CurveLoop();
                 foreach (Line line in lines)
-                {
                     reversedLoop.Append(Line.CreateBound(line.GetEndPoint(1), line.GetEndPoint(0)));
-                }
+
                 if (!reversedLoop.IsOpen() && reversedLoop.IsCounterclockwise(new XYZ(0, 0, 1)))
                     return reversedLoop;
 
                 return null;
             }
-            catch (Exception ex)
+            catch
             {
                 return null;
             }
         }
-
 
         private CurveLoop ArrangeLinesToCurveLoop(List<Line> lines)
         {
             if (lines == null || lines.Count < 3)
                 return null;
 
-            CurveLoop curveLoop = new CurveLoop();
-
+            CurveLoop loop = new CurveLoop();
             List<Line> remaining = new List<Line>(lines);
             Line firstLine = remaining[0];
-            curveLoop.Append(firstLine);
-
+            loop.Append(firstLine);
             remaining.RemoveAt(0);
             XYZ currentPoint = firstLine.GetEndPoint(1);
 
@@ -132,7 +131,7 @@ namespace Task1
                     XYZ end = l.GetEndPoint(1);
                     if (currentPoint.IsAlmostEqualTo(start))
                     {
-                        curveLoop.Append(l);
+                        loop.Append(l);
                         currentPoint = end;
                         remaining.RemoveAt(i);
                         found = true;
@@ -140,8 +139,7 @@ namespace Task1
                     }
                     else if (currentPoint.IsAlmostEqualTo(end))
                     {
-                        Line reversed = Line.CreateBound(end, start);
-                        curveLoop.Append(reversed);
+                        loop.Append(Line.CreateBound(end, start));
                         currentPoint = start;
                         remaining.RemoveAt(i);
                         found = true;
@@ -154,34 +152,65 @@ namespace Task1
             if (!firstLine.GetEndPoint(0).IsAlmostEqualTo(currentPoint))
                 return null;
 
-            return curveLoop;
+            return loop;
         }
 
-        private Floor CreateFloor(Document doc, CurveLoop curveLoop, string levelName, string typeName)
+        private FloorType GetFloorType(Document doc, string name)
         {
-            FloorType floorType = new FilteredElementCollector(doc)
+            FloorType type = new FilteredElementCollector(doc)
                 .OfClass(typeof(FloorType))
                 .Cast<FloorType>()
-                .Where(f => f.Name == typeName).FirstOrDefault();
+                .FirstOrDefault(f => f.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
-            Level level = new FilteredElementCollector(doc)
-                                .OfClass(typeof(Level))
-                                .Cast<Level>()
-                                .Where(l => l.Name == levelName).FirstOrDefault();
-
-            if (floorType == null || level == null)
+            if (type == null)
             {
-                TaskDialog.Show("Error", "Could not find floor type or level.");
-                return null;
+                type = new FilteredElementCollector(doc)
+                           .OfClass(typeof(FloorType))
+                           .Cast<FloorType>()
+                           .FirstOrDefault();
             }
 
-            return Floor.Create(doc, new List<CurveLoop> { curveLoop }, floorType.Id, level.Id);
+            return type;
         }
+
+        private Level GetLevel(Document doc, string name)
+        {
+            Level level = new FilteredElementCollector(doc)
+                .OfClass(typeof(Level))
+                .Cast<Level>()
+                .FirstOrDefault(l => l.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+            if (level == null)
+            {
+                level = new FilteredElementCollector(doc)
+                           .OfClass(typeof(Level))
+                           .Cast<Level>()
+                           .FirstOrDefault();
+            }
+
+            return level;
+        }
+
+        private void ShowAvailableTypesAndLevels(Document doc)
+        {
+            var floorTypes = new FilteredElementCollector(doc)
+                .OfClass(typeof(FloorType))
+                .Cast<FloorType>()
+                .Select(f => f.Name)
+                .ToList();
+
+            var levels = new FilteredElementCollector(doc)
+                .OfClass(typeof(Level))
+                .Cast<Level>()
+                .Select(l => l.Name)
+                .ToList();
+
+            string msg = "Available Floor Types:\n" + string.Join("\n", floorTypes) +
+                         "\n\nAvailable Levels:\n" + string.Join("\n", levels);
+
+            TaskDialog.Show("Available Types and Levels", msg);
+        }
+
         #endregion
-
-
-
-
-
     }
 }
