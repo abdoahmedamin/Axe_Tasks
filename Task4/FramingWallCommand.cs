@@ -35,7 +35,13 @@ namespace Task4
                 XYZ wallNormal = wallFace.ComputeNormal(new UV(0.5, 0.5));
                 IList<CurveLoop> curveLoops = wallFace.GetEdgesAsCurveLoops();
 
+                using (Transaction tr = new Transaction(document))
+                {
+                    tr.Start("Framing Wall");
 
+
+                    tr.Commit();
+                }
             }
             catch
             {
