@@ -55,6 +55,7 @@
     <Compile Include="Doorthreshold.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RevitApp3.cs" />
+    <Compile Include="SelectionFilter.cs" />
     <Compile Include="ThresholdCommand.cs" />
   </ItemGroup>
   <ItemGroup>
