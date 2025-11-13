@@ -1,15 +1,12 @@
-﻿using Autodesk.Revit.UI;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using Autodesk.Revit.UI;
 
-namespace Task2
+namespace Task3
 {
-    public class RevitApp2 : IExternalApplication
+    public class RevitApp3 : IExternalApplication
     {
         public Result OnShutdown(UIControlledApplication application)
         {
@@ -38,19 +35,21 @@ namespace Task2
 
             string assemblyPath = Assembly.GetExecutingAssembly().Location;
             var buttonData = new PushButtonData(
-                "Task2",
-                "Task2\nProperInRoomPlacement",
+                "Task3",
+                "Task3\nDoor Threshold",
                 assemblyPath,
-                typeof(ProperInRoomPlacement).FullName);
+                typeof(ThresholdCommand).FullName);
 
-            Uri iconUri = new Uri("C:\\Users\\iti\\Desktop\\Axelirate_Tasks\\Axe_Tasks\\Task2\\resources\\toilet.ico");
+            Uri iconUri = new Uri("C:\\Users\\iti\\Desktop\\Axelirate_Tasks\\Axe_Tasks\\Task3\\resources\\icon3.png");
 
             var buttonImage = new BitmapImage(iconUri);
             buttonData.LargeImage = buttonImage;
 
+
             var button = panel.AddItem(buttonData) as PushButton;
-            button.ToolTip = "ProperInRoomPlacement";
+            button.ToolTip = "Door Threshold";
 
             return Result.Succeeded;
         }
-    }}
+    }
+}

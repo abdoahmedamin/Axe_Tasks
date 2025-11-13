@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<RevitAddIns>
+	<AddIn Type="Application">
+		<Name>Threshold</Name>
+		<Assembly>Task3.dll</Assembly>
+		<AddInId>
+			8B382C01-17B2-4624-977D-07280FD87A0C
+		</AddInId>
+		<FullClassName>Task3.RevitApp</FullClassName>
+		<Description>Threshold</Description>
+		<VendorId>AXE</VendorId>
+		<VendorDescription>@AXE</VendorDescription>
+		<VisibilityMode>NotVisibleWhenNoActiveDocument</VisibilityMode>
+	</AddIn>
+</RevitAddIns>

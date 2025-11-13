@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Task3
 {
-    public class Class1
+    public class ThresholdCommand
     {
     }
 }
