@@ -41,28 +41,22 @@ namespace Task4
                 {
                     tr.Start("Framing Wall");
 
+                    CreateFraming(document, wall, wallSolid, wallFace, wallNormal, curveLoops);
 
                     tr.Commit();
                 }
-            }
-            catch
-            {
+                return Result.Succeeded;
 
+            }
+            catch (Exception ex)
+            {
+                message = ex.Message;
+                TaskDialog.Show("Error", "OOPS! Error Occurred: " + ex.Message);
+                return Result.Failed;
             }
         }
 
         #region Method
-        private Solid GetWallSolid(Wall wall)
-        {
-            Options options = new Options();
-            options.ComputeReferences = true;
-            GeometryElement wallGeometry = wall.get_Geometry(options);
-
-            return wallGeometry
-                .Cast<GeometryObject>()
-                .OfType<Solid>()
-                .FirstOrDefault(solid => solid.Volume > 0);
-        }
 
         private void CreateFraming(Document doc, Wall wall, Solid wallSolid, Face wallFace, XYZ wallNormal, IList<CurveLoop> curveLoops)
         {
