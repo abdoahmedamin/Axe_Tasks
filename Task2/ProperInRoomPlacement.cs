@@ -64,7 +64,35 @@ namespace Task2
                 List<BathRoom> bathRooms = GetBathroomsData(document, wall, rooms, document.ActiveView, options);
 
 
-                return Result.Succeeded;
+                using (Transaction tr = new Transaction(document))
+                {
+                    tr.Start("Family Placement");
+
+                    foreach (var room in bathRooms)
+                    {
+                        if (room.DoorLocation == null || room == null) continue;
+
+                        Curve curve = room.WallSegment;
+
+                        XYZ startPoint = curve.GetEndPoint(0);
+                        XYZ endPoint = curve.GetEndPoint(1);
+
+                        double d1 = room.DoorLocation.DistanceTo(startPoint);
+                        double d2 = room.DoorLocation.DistanceTo(endPoint);
+
+                        XYZ placementPoint = d1 > d2 ? startPoint : endPoint;
+
+                        if (!familySymbol.IsActive)
+                        {
+                            familySymbol.Activate();
+                        }
+
+                        
+                    }
+
+                    tr.Commit();
+
+                    return Result.Succeeded;
             }
             catch (Exception ex)
             {
