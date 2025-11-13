@@ -188,6 +188,18 @@ namespace Task4
                     }
                 }
             }
-            #endregion
         }
+
+        private void CreateModelCurve(Document doc, Curve curve, XYZ normal, XYZ origin)
+        {
+            Plane plane = Plane.CreateByNormalAndOrigin(normal, origin);
+            SketchPlane sketchPlane = SketchPlane.Create(doc, plane);
+            doc.Create.NewModelCurve(curve, sketchPlane);
+        }
+        #endregion
+
+
+
+
+    }
 }
