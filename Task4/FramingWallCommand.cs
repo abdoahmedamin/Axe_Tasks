@@ -168,6 +168,26 @@ namespace Task4
             CreateModelCurve(doc, Line.CreateBound(p1Offset, p2Offset), wallNormal, p1Offset);
         }
 
-        #endregion
-    }
+        private void CreateOpeningFraming(Document doc, CurveLoop openingLoop, XYZ wallNormal, bool isDoor)
+        {
+            List<Curve> curves = openingLoop.ToList();
+            int skipIndex = -1;
+
+            // doors, skip bottom edge
+            if (isDoor)
+            {
+                double lowestZ = double.MaxValue;
+                for (int j = 0; j < curves.Count; j++)
+                {
+                    Curve curve = curves[j];
+                    double avgZ = (curve.GetEndPoint(0).Z + curve.GetEndPoint(1).Z) / 2.0;
+                    if (avgZ < lowestZ)
+                    {
+                        lowestZ = avgZ;
+                        skipIndex = j;
+                    }
+                }
+            }
+            #endregion
+        }
 }
