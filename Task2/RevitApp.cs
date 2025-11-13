@@ -18,20 +18,20 @@ namespace Task2
         {
             try
             {
-                application.CreateRibbonTab("AXERevit");
+                application.CreateRibbonTab("AXE_Revit_PLugins");
             }
             catch (Exception) { }
 
             RibbonPanel panel = null;
             try
             {
-                panel = application.GetRibbonPanels("AXERevit").FirstOrDefault(p => p.Name == "Tools");
+                panel = application.GetRibbonPanels("AXE_Revit_PLugins").FirstOrDefault(p => p.Name == "Tools");
             }
             catch (Exception) { }
 
             if (panel == null)
             {
-                panel = application.CreateRibbonPanel("AXERevit", "Tools");
+                panel = application.CreateRibbonPanel("AXE_Revit_PLugins", "Tools");
             }
 
             string assemblyPath = Assembly.GetExecutingAssembly().Location;
@@ -41,7 +41,8 @@ namespace Task2
                 assemblyPath,
                 typeof(ProperInRoomPlacement).FullName);
 
-            Uri iconUri = new Uri("pack://application:,,,/Task2;component/Resources/toilet.ico");
+            Uri iconUri = new Uri("C:\\Users\\iti\\Desktop\\Axelirate_Tasks\\Axe_Tasks\\Task2\\resources\\toilet.ico");
+
             var buttonImage = new BitmapImage(iconUri);
             buttonData.LargeImage = buttonImage;
 
