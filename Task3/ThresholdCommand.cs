@@ -95,6 +95,63 @@ namespace Task3
                 loops.Add(loop);
             }
 
+            // no existing floor
+            double floorThickness = 0.15;
+            offset = 0;
+
+            // all floors
+            FilteredElementCollector floors = new FilteredElementCollector(doc, doc.ActiveView.Id)
+                .OfCategory(BuiltInCategory.OST_Floors)
+                .OfClass(typeof(Floor));
+
+            // intersected floor if exist
+            XYZ roomCentroid = (room.Location as LocationPoint).Point;
+            Line intersectionLine = Line.CreateBound(
+                roomCentroid,
+                new XYZ(roomCentroid.X, roomCentroid.Y, roomCentroid.Z - 10));
+
+            foreach (Floor floor in floors)
+            {
+                GeometryElement floorGeom = floor.get_Geometry(new Options());
+                if (floorGeom == null) continue;
+
+                foreach (GeometryObject obj in floorGeom)
+                {
+                    Solid floorSolid = obj as Solid;
+                    if (floorSolid != null && floorSolid.Volume > 0)
+                    {
+                        SolidCurveIntersection intersection = floorSolid.IntersectWithCurve(
+                            intersectionLine,
+                            new SolidCurveIntersectionOptions());
+
+                        if (intersection != null && intersection.SegmentCount > 0)
+                        {
+                            outFloor = floor;
+                            floorThickness = floor.get_Parameter(BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM).AsDouble();
+                            offset = floor.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).AsDouble();
+
+                            if (offset != 0)
+                            {
+                                XYZ translation = new XYZ(0, 0, offset);
+                                Transform offsetTransform = Transform.CreateTranslation(translation);
+
+                                List<CurveLoop> offsetLoops = new List<CurveLoop>();
+                                foreach (CurveLoop loop in loops)
+                                {
+                                    offsetLoops.Add(CurveLoop.CreateViaTransform(loop, offsetTransform));
+                                }
+
+                                return GeometryCreationUtilities.CreateExtrusionGeometry(
+                                    offsetLoops,
+                                    XYZ.BasisZ.Negate(),
+                                    floorThickness);
+                            }
+
+                            return floorSolid;
+                        }
+                    }
+                }
+            }
 
 
         }
