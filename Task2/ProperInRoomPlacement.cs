@@ -52,6 +52,16 @@ namespace Task2
                                                                     .Cast<Room>()
                                                                     .Where(r => r.Name.Contains(roomName)).ToList();
 
+                if (rooms.Count == 0)
+                {
+                    TaskDialog.Show("Error", "Wall is not Boundry For any BathRoom.");
+                    return Result.Failed;
+                }
+
+                SpatialElementBoundaryOptions options = new SpatialElementBoundaryOptions();
+                options.SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.CoreBoundary;
+
+
                 return Result.Succeeded;
             }
             catch (Exception ex)
@@ -60,7 +70,56 @@ namespace Task2
                 TaskDialog.Show("Error", "OOPS! Error Occurred: " + ex.Message);
                 return Result.Failed;
             }
+
         }
+        #region Methods
+
+        private List<BathRoom> GetBathroomsData(Document doc, Wall wall, List<Room> rooms, View view, SpatialElementBoundaryOptions options)
+        {
+            if (wall == null || rooms.Count <= 0) return null;
+
+            List<BathRoom> bathRooms = new List<BathRoom>();
+            FamilyInstance door = null;
+
+            foreach (Room room in rooms)
+            {
+                if (room == null) continue;
+
+                BoundingBoxXYZ roombb = room.get_BoundingBox(null);
+                Outline outline = new Outline(roombb.Min, roombb.Max);
+                BoundingBoxIntersectsFilter boundingBoxIntersectsFilter = new BoundingBoxIntersectsFilter(outline);
+
+                // bathRoom door
+                door = new FilteredElementCollector(doc, view.Id)
+                                              .OfCategory(BuiltInCategory.OST_Doors)
+                                              .WherePasses(boundingBoxIntersectsFilter)
+                                              .Cast<FamilyInstance>()
+                                              .FirstOrDefault();
+
+
+                BathRoom bathRoom = new BathRoom(room.Name);
+                bathRoom.Center = (room.Location as LocationPoint).Point;
+
+                // door location
+                if (door != null)
+                    bathRoom.DoorLocation = (door.Location as LocationPoint).Point;
+
+                IList<IList<BoundarySegment>> boundarySegments = room.GetBoundarySegments(options);
+
+                foreach (var boundarySegment in boundarySegments)
+                {
+                    foreach (var segment in boundarySegment)
+                    {
+                        // wall segment
+                        if (segment.ElementId == wall.Id)
+                            bathRoom.WallSegment = segment.GetCurve();
+                    }
+                }
+                bathRooms.Add(bathRoom);
+            }
+            return bathRooms;
+        }
+        #endregion
 
     }
 }
