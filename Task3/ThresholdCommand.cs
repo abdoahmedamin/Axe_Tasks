@@ -17,6 +17,8 @@ namespace Task3
         {
             UIDocument uIDocument = commandData.Application.ActiveUIDocument;
             Document document = uIDocument.Document;
+            string floorTypeName = "Generic 150mm";
+
 
             TaskDialog.Show("Threshold Command", "This is a placeholder for the Door Threshold functionality.");
 
@@ -45,21 +47,43 @@ namespace Task3
 
                 using (Transaction tr = new Transaction(document))
                 {
-                    tr.Start("Rooms Thresholds");
 
+                    tr.Start("Rooms Thresholds");
                     foreach (Room room in rooms)
                     {
-                       
+                        try
+                        {
                             Level level = room.Level;
+
+                            // assume floor thickness if no existing floor
+                            double offset = 0;
+                            double floorThickness = 0.15;
+
+                            Floor outfloor;
+                            Solid roomFloorSolid = GetOrCreateRoomFloor(document, room, level, out outfloor, out offset);
+
+                            if (roomFloorSolid == null)
+                                continue;
+
+                            if (outfloor != null)
+                            {
+                                floorThickness = outfloor.get_Parameter(BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM).AsDouble();
+                                floorTypeName = outfloor.FloorType.Name;
+
+                            }
+
+                            List<Doorthreshold> roomThresholds = GetRoomAllThresholds(document, room);
 
                             
 
 
-                        
-                    }
+                        }
 
-                }   
-            }   
+                        catch (Exception ex)
+                        { }
+                    }
+                }
+            }    
             catch (Exception ex)
             {
                 message = ex.Message;
@@ -153,9 +177,56 @@ namespace Task3
                 }
             }
 
+            Solid RoomFloorSolid = GeometryCreationUtilities
+                                .CreateExtrusionGeometry(loops, XYZ.BasisZ.Negate(),floorThickness);
+
+            outFloor = null;
+            offset = 0;
+            return RoomFloorSolid;
+
 
         }
 
+        private List<Doorthreshold> GetRoomAllThresholds(Document doc, Room room)
+        {
+            List<Doorthreshold> thresholds = new List<Doorthreshold>();
+
+            BoundingBoxXYZ roombb = room.get_BoundingBox(null);
+            Outline outline = new Outline(roombb.Min, roombb.Max);
+            BoundingBoxIntersectsFilter boundingBoxIntersectsFilter = new BoundingBoxIntersectsFilter(outline);
+
+            // all doors
+            var doors = new FilteredElementCollector(doc)
+                                          .OfCategory(BuiltInCategory.OST_Doors)
+                                          .WherePasses(boundingBoxIntersectsFilter)
+                                          .Cast<FamilyInstance>()
+                                          .ToList();
+
+            foreach (FamilyInstance d in doors)
+            {
+                if (d != null && d.Host != null)
+                {
+                    ElementId typeId = d.GetTypeId();
+                    Element type = doc.GetElement(typeId);
+
+                    Wall hostWall = doc.GetElement(d.Host.Id) as Wall;
+                    if (hostWall == null) continue;
+
+                    Doorthreshold threshold = new Doorthreshold();
+
+                    threshold.Room = room;
+                    threshold.Door = d;
+                    threshold.HostWall = hostWall;
+                    threshold.Locatin = (d.Location as LocationPoint).Point;
+                    threshold.Width = type.get_Parameter(BuiltInParameter.DOOR_WIDTH).AsDouble();
+                    threshold.Depth = hostWall.Width / 2.0;
+
+                    thresholds.Add(threshold);
+                }
+            }
+
+            return thresholds;
+        }
         #endregion
     }
 }
